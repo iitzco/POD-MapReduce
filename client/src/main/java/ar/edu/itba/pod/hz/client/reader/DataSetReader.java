@@ -15,7 +15,6 @@ import org.supercsv.prefs.CsvPreference;
 import com.hazelcast.core.IMap;
 
 import ar.edu.itba.pod.hz.model.Data;
-import ar.edu.itba.pod.hz.model.Votacion;
 
 public class DataSetReader {
 	// el directorio wc dentro en un directorio llamado "resources"
@@ -35,7 +34,7 @@ public class DataSetReader {
 		};
 	}
 
-	public static void readDataSet(final IMap<String, Data> theIMap) throws Exception {
+	public static void readDataSet(final IMap<Integer, Data> theIMap) throws Exception {
 		ICsvBeanReader beanReader = null;
 		try {
 			final InputStream is = DataSetReader.class.getClassLoader().getResourceAsStream(FILENAME);
@@ -52,7 +51,8 @@ public class DataSetReader {
 			while ((aD = beanReader.read(Data.class, header, processors)) != null) {
 				System.out.println(String.format("lineNo=%s, rowNo=%s, customer=%s", beanReader.getLineNumber(),
 						beanReader.getRowNumber(), aD));
-//				 theIMap.set(aV.getDistrito() + "-" + aV.getFormula(), aV);
+				int row_id = beanReader.getRowNumber();
+				theIMap.set(row_id, aD);
 			}
 		} finally {
 			if (beanReader != null) {
