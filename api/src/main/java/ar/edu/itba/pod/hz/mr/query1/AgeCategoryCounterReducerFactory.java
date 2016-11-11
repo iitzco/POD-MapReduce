@@ -1,4 +1,4 @@
-package ar.edu.itba.pod.hz.mr;
+package ar.edu.itba.pod.hz.mr.query1;
 
 import com.hazelcast.mapreduce.Reducer;
 import com.hazelcast.mapreduce.ReducerFactory;

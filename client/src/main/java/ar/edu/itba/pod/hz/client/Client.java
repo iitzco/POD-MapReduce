@@ -1,5 +1,6 @@
 package ar.edu.itba.pod.hz.client;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
@@ -16,12 +17,15 @@ import com.hazelcast.mapreduce.KeyValueSource;
 
 import ar.edu.itba.pod.hz.client.reader.DataSetReader;
 import ar.edu.itba.pod.hz.model.Data;
-import ar.edu.itba.pod.hz.mr.AgeCategoryCounterReducerFactory;
-import ar.edu.itba.pod.hz.mr.AgeCategoryMapperFactory;
-import ar.edu.itba.pod.hz.mr.AnalphabetPerDepartmentReducerFactory;
-import ar.edu.itba.pod.hz.mr.AverageHabitantsPerHouseReducerFactory;
-import ar.edu.itba.pod.hz.mr.DepartmentMapperFactory;
-import ar.edu.itba.pod.hz.mr.TypeOfHouseMapperFactory;
+import ar.edu.itba.pod.hz.model.DepartmentValueTuple;
+import ar.edu.itba.pod.hz.mr.query1.AgeCategoryCounterReducerFactory;
+import ar.edu.itba.pod.hz.mr.query1.AgeCategoryMapperFactory;
+import ar.edu.itba.pod.hz.mr.query2.AverageHabitantsPerHouseReducerFactory;
+import ar.edu.itba.pod.hz.mr.query2.TypeOfHouseMapperFactory;
+import ar.edu.itba.pod.hz.mr.query3.AnalphabetPerDepartmentReducerFactory;
+import ar.edu.itba.pod.hz.mr.query3.DepartmentMapperFactory;
+import ar.edu.itba.pod.hz.mr.query3.MaxNDepartmentsMapper;
+import ar.edu.itba.pod.hz.mr.query3.MaxNDepartmentsReducer;
 
 public class Client {
 	private static final String MAP_NAME = "mapa";
@@ -35,7 +39,8 @@ public class Client {
 			pass = "dev-pass";
 		}
 
-//		System.out.println(String.format("Connecting with cluster dev-name [%s]", name));
+		// System.out.println(String.format("Connecting with cluster dev-name
+		// [%s]", name));
 
 		ClientConfig ccfg = new ClientConfig();
 		ccfg.getGroupConfig().setName(name).setPassword(pass);
@@ -51,10 +56,6 @@ public class Client {
 		}
 		HazelcastInstance client = HazelcastClient.newHazelcastClient(ccfg);
 
-//		System.out.println(client.getCluster());
-
-		// Preparar la particion de datos y distribuirla en el cluster a trav�s
-		// del IMap
 		IMap<Integer, Data> myMap = client.getMap(MAP_NAME);
 		try {
 			DataSetReader.readDataSet(myMap);
@@ -62,48 +63,57 @@ public class Client {
 			throw new RuntimeException(e);
 		}
 
-		// Ahora el JobTracker y los Workers!
 		JobTracker tracker = client.getJobTracker("default");
 
-		// Ahora el Job desde los pares(key, Value) que precisa MapReduce
 		KeyValueSource<Integer, Data> source = KeyValueSource.fromMap(myMap);
 		Job<Integer, Data> job = tracker.newJob(source);
 
-		// // Orquestacion de Jobs y lanzamiento query 1
 		ICompletableFuture<Map<String, Integer>> futureQuery1 = job.mapper(new AgeCategoryMapperFactory())
 				.reducer(new AgeCategoryCounterReducerFactory()).submit();
 
-		// Tomar resultado e Imprimirlo
 		Map<String, Integer> rtaQuery1 = futureQuery1.get();
-		
+
 		System.out.println("QUERY 1");
 		for (Entry<String, Integer> e : rtaQuery1.entrySet()) {
 			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
 		}
-		
+
 		job = tracker.newJob(source);
-		// // Orquestacion de Jobs y lanzamiento query 2
 		ICompletableFuture<Map<Integer, Double>> futureQuery2 = job.mapper(new TypeOfHouseMapperFactory())
 				.reducer(new AverageHabitantsPerHouseReducerFactory()).submit();
 
-		// Tomar resultado e Imprimirlo
 		Map<Integer, Double> rtaQuery2 = futureQuery2.get();
 
 		System.out.println("QUERY 2");
 		for (Entry<Integer, Double> e : rtaQuery2.entrySet()) {
 			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
 		}
-//		
-//		// // Orquestacion de Jobs y lanzamiento query 3
-//		ICompletableFuture<Map<String, Double>> futureQuery3 = job.mapper(new DepartmentMapperFactory())
-//				.reducer(new AnalphabetPerDepartmentReducerFactory()).submit();
-//
-//		// Tomar resultado e Imprimirlo
-//		Map<String, Double> rtaQuery3 = futureQuery3.get();
-//
-//		for (Entry<String, Double> e : rtaQuery3.entrySet()) {
-//			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
-//		}
+
+		int n = 3;
+
+		job = tracker.newJob(source);
+		ICompletableFuture<Map<String, Double>> futureQuery3 = job.mapper(new DepartmentMapperFactory())
+				.reducer(new AnalphabetPerDepartmentReducerFactory()).submit();
+
+		IMap<String, Double> partialMap = client.getMap("aux");
+		Map<String, Double> rtaParcialQuery3 = futureQuery3.get();
+
+		for (Entry<String, Double> entry : rtaParcialQuery3.entrySet()) {
+			partialMap.put(entry.getKey(), entry.getValue());
+		}
+
+		KeyValueSource<String, Double> auxSource = KeyValueSource.fromMap(partialMap);
+		Job<String, Double> auxJob = tracker.newJob(auxSource);
+		ICompletableFuture<Map<Integer, List<DepartmentValueTuple>>> finalFutureQuery3 = auxJob
+				.mapper(new MaxNDepartmentsMapper(n)).reducer(new MaxNDepartmentsReducer()).submit();
+
+		System.out.println("QUERY 3");
+		Map<Integer, List<DepartmentValueTuple>> finalQuery3 = finalFutureQuery3.get();
+		for (Entry<Integer, List<DepartmentValueTuple>> e : finalQuery3.entrySet()) {
+			System.out.println(String.format("%s Departamentos mas analfabetos", e.getKey()));
+			for (DepartmentValueTuple each : e.getValue())
+				System.out.println(String.format("%s => %s", each.getNombredepto(), each.getValue()));
+		}
 
 		System.exit(0);
 

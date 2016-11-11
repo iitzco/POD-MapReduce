@@ -1,4 +1,4 @@
-package ar.edu.itba.pod.hz.mr;
+package ar.edu.itba.pod.hz.mr.query2;
 
 import java.util.HashSet;
 import java.util.Set;
