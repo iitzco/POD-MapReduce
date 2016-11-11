@@ -11,7 +11,7 @@ public class AgeCategoryMapperFactory implements Mapper<Integer, Data, String, I
 
 	@Override
 	public void map(final Integer keyinput, final Data valueinput, final Context<String, Integer> context) {
-		System.out.println(String.format("Llega KeyInput: %s con ValueInput: %s", keyinput, valueinput));
+//		System.out.println(String.format("Llega KeyInput: %s con ValueInput: %s", keyinput, valueinput));
 
 		int age = valueinput.getEdad();
 		String category = "";
@@ -25,6 +25,6 @@ public class AgeCategoryMapperFactory implements Mapper<Integer, Data, String, I
 
 		context.emit(category, 1);
 
-		System.out.println(String.format("Se emite (%s, %s)", category, 1));
+//		System.out.println(String.format("Se emite (%s, %s)", category, 1));
 	}
 }

@@ -24,7 +24,7 @@ public class AgeCategoryCounterReducerFactory implements ReducerFactory<String, 
 
 			@Override
 			public Integer finalizeReduce() {
-				System.out.println(String.format("FinalReduce for %s = %s", category, count));
+//				System.out.println(String.format("FinalReduce for %s = %s", category, count));
 				return count;
 			}
 		};

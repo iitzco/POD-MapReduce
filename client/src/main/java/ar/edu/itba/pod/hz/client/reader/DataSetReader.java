@@ -49,8 +49,6 @@ public class DataSetReader {
 
 			Data aD;
 			while ((aD = beanReader.read(Data.class, header, processors)) != null) {
-				System.out.println(String.format("lineNo=%s, rowNo=%s, customer=%s", beanReader.getLineNumber(),
-						beanReader.getRowNumber(), aD));
 				int row_id = beanReader.getRowNumber();
 				theIMap.set(row_id, aD);
 			}
