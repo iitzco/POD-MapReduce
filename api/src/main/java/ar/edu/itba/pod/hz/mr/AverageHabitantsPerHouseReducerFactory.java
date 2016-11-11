@@ -9,7 +9,7 @@ import com.hazelcast.mapreduce.ReducerFactory;
 import ar.edu.itba.pod.hz.model.Data;
 
 public class AverageHabitantsPerHouseReducerFactory implements ReducerFactory<Integer, Data, Double> {
-
+	private static final long serialVersionUID = 1L;
 	private Map<Integer, Integer> quantityPerHouse;
 	@Override
 	public Reducer<Data, Double> newReducer(final Integer typeOfHouse) {
@@ -27,7 +27,6 @@ public class AverageHabitantsPerHouseReducerFactory implements ReducerFactory<In
 
 			@Override
 			public void reduce(final Data value) {
-				
 				if (!quantityPerHouse.containsKey(value.getHogarid())) {
 					quantityPerHouse.put(value.getHogarid(), 1);
 				} else {
@@ -38,12 +37,11 @@ public class AverageHabitantsPerHouseReducerFactory implements ReducerFactory<In
 
 			@Override
 			public Double finalizeReduce() {
-				
 				for (Integer habitants : quantityPerHouse.values()) {
 					sum += habitants;
 				}
 				System.out.println(String.format("FinalReduce for %s = %f", typeOfHouse, (double)sum/count));
-				return (double) (sum/quantityPerHouse.keySet().size());
+				return (double) (sum/count);
 			}
 		};
 	}

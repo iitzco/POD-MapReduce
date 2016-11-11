@@ -16,10 +16,8 @@ import com.hazelcast.mapreduce.KeyValueSource;
 
 import ar.edu.itba.pod.hz.client.reader.DataSetReader;
 import ar.edu.itba.pod.hz.model.Data;
-import ar.edu.itba.pod.hz.mr.AgeCategoryCounterReducerFactory;
-import ar.edu.itba.pod.hz.mr.AgeCategoryMapperFactory;
-import ar.edu.itba.pod.hz.mr.AverageHabitantsPerHouseReducerFactory;
-import ar.edu.itba.pod.hz.mr.TypeOfHouseMapperFactory;
+import ar.edu.itba.pod.hz.mr.AnalphabetPerDepartmentReducerFactory;
+import ar.edu.itba.pod.hz.mr.DepartmentMapperFactory;
 
 public class Client {
 	private static final String MAP_NAME = "mapa";
@@ -68,24 +66,35 @@ public class Client {
 		Job<Integer, Data> job = tracker.newJob(source);
 
 //		// // Orquestacion de Jobs y lanzamiento query 1
-		ICompletableFuture<Map<String, Integer>> futureQuery1 = job.mapper(new AgeCategoryMapperFactory())
-				.reducer(new AgeCategoryCounterReducerFactory()).submit();
+//		ICompletableFuture<Map<String, Integer>> futureQuery1 = job.mapper(new AgeCategoryMapperFactory())
+//				.reducer(new AgeCategoryCounterReducerFactory()).submit();
+//
+//		// Tomar resultado e Imprimirlo
+//		Map<String, Integer> rtaQuery1 = futureQuery1.get();
+//		
+//		for (Entry<String, Integer> e : rtaQuery1.entrySet()) {
+//			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
+//		}
+//		
+//		// // Orquestacion de Jobs y lanzamiento query 2
+//		ICompletableFuture<Map<Integer, Double>> futureQuery2 = job.mapper(new TypeOfHouseMapperFactory())
+//				.reducer(new AverageHabitantsPerHouseReducerFactory()).submit();
+//
+//		// Tomar resultado e Imprimirlo
+//		Map<Integer, Double> rtaQuery2 = futureQuery2.get();
+//
+//		for (Entry<Integer, Double> e : rtaQuery2.entrySet()) {
+//			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
+//		}
+		
+		// // Orquestacion de Jobs y lanzamiento query 3
+		ICompletableFuture<Map<String, Double>> futureQuery3 = job.mapper(new DepartmentMapperFactory())
+				.reducer(new AnalphabetPerDepartmentReducerFactory()).submit();
 
 		// Tomar resultado e Imprimirlo
-		Map<String, Integer> rtaQuery1 = futureQuery1.get();
-		
-		for (Entry<String, Integer> e : rtaQuery1.entrySet()) {
-			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
-		}
-		
-		// // Orquestacion de Jobs y lanzamiento query 2
-		ICompletableFuture<Map<Integer, Double>> futureQuery2 = job.mapper(new TypeOfHouseMapperFactory())
-				.reducer(new AverageHabitantsPerHouseReducerFactory()).submit();
+		Map<String, Double> rtaQuery3 = futureQuery3.get();
 
-		// Tomar resultado e Imprimirlo
-		Map<Integer, Double> rtaQuery2 = futureQuery2.get();
-
-		for (Entry<Integer, Double> e : rtaQuery2.entrySet()) {
+		for (Entry<String, Double> e : rtaQuery3.entrySet()) {
 			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
 		}
 
