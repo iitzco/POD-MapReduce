@@ -18,6 +18,10 @@ import com.hazelcast.mapreduce.KeyValueSource;
 import ar.edu.itba.pod.hz.client.reader.DataSetReader;
 import ar.edu.itba.pod.hz.model.Data;
 import ar.edu.itba.pod.hz.model.DepartmentValueTuple;
+import ar.edu.itba.pod.hz.model.query4.DepartmentCounterReducerFactory;
+import ar.edu.itba.pod.hz.model.query4.DepartmentUnitMapperFactory;
+import ar.edu.itba.pod.hz.model.query4.FilterTopeDepartmentMapper;
+import ar.edu.itba.pod.hz.model.query4.IdentityReducerFactory;
 import ar.edu.itba.pod.hz.mr.query1.AgeCategoryCounterReducerFactory;
 import ar.edu.itba.pod.hz.mr.query1.AgeCategoryMapperFactory;
 import ar.edu.itba.pod.hz.mr.query2.AverageHabitantsPerHouseReducerFactory;
@@ -113,6 +117,32 @@ public class Client {
 			System.out.println(String.format("%s Departamentos mas analfabetos", e.getKey()));
 			for (DepartmentValueTuple each : e.getValue())
 				System.out.println(String.format("%s => %s", each.getNombredepto(), each.getValue()));
+		}
+
+		String nombreProv = "Buenos Aires";
+		int tope = 15;
+
+		job = tracker.newJob(source);
+		ICompletableFuture<Map<String, Integer>> auxQuery4 = job.mapper(new DepartmentUnitMapperFactory(nombreProv))
+				.reducer(new DepartmentCounterReducerFactory(tope)).submit();
+
+		IMap<String, Integer> partialMapForQuery4 = client.getMap("auxForQuery4");
+		Map<String, Integer> rtaParcialQuery4 = auxQuery4.get();
+
+		for (Entry<String, Integer> entry : rtaParcialQuery4.entrySet()) {
+			partialMapForQuery4.put(entry.getKey(), entry.getValue());
+		}
+
+		KeyValueSource<String, Integer> auxSourceForQuery4 = KeyValueSource.fromMap(partialMapForQuery4);
+		Job<String, Integer> auxJobForQuery4 = tracker.newJob(auxSourceForQuery4);
+
+		ICompletableFuture<Map<String, Integer>> finalFutureQuery4 = auxJobForQuery4
+				.mapper(new FilterTopeDepartmentMapper()).reducer(new IdentityReducerFactory()).submit();
+
+		System.out.println("QUERY 4");
+		Map<String, Integer> finalQuery4 = finalFutureQuery4.get();
+		for (Entry<String, Integer> e : finalQuery4.entrySet()) {
+			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
 		}
 
 		System.exit(0);
