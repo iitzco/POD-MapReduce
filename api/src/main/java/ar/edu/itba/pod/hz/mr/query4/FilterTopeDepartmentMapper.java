@@ -1,4 +1,4 @@
-package ar.edu.itba.pod.hz.model.query4;
+package ar.edu.itba.pod.hz.mr.query4;
 
 import com.hazelcast.mapreduce.Context;
 import com.hazelcast.mapreduce.Mapper;

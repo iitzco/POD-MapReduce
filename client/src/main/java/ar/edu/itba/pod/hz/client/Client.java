@@ -17,19 +17,24 @@ import com.hazelcast.mapreduce.KeyValueSource;
 
 import ar.edu.itba.pod.hz.client.reader.DataSetReader;
 import ar.edu.itba.pod.hz.model.Data;
+import ar.edu.itba.pod.hz.model.DepartmentDepartmentTuple;
 import ar.edu.itba.pod.hz.model.DepartmentValueTuple;
-import ar.edu.itba.pod.hz.model.query4.DepartmentCounterReducerFactory;
-import ar.edu.itba.pod.hz.model.query4.DepartmentUnitMapperFactory;
-import ar.edu.itba.pod.hz.model.query4.FilterTopeDepartmentMapper;
-import ar.edu.itba.pod.hz.model.query4.IdentityReducerFactory;
 import ar.edu.itba.pod.hz.mr.query1.AgeCategoryCounterReducerFactory;
 import ar.edu.itba.pod.hz.mr.query1.AgeCategoryMapperFactory;
 import ar.edu.itba.pod.hz.mr.query2.AverageHabitantsPerHouseReducerFactory;
 import ar.edu.itba.pod.hz.mr.query2.TypeOfHouseMapperFactory;
 import ar.edu.itba.pod.hz.mr.query3.AnalphabetPerDepartmentReducerFactory;
-import ar.edu.itba.pod.hz.mr.query3.DepartmentMapperFactory;
+import ar.edu.itba.pod.hz.mr.query3.DepartmentAnalphabetMapperFactory;
 import ar.edu.itba.pod.hz.mr.query3.MaxNDepartmentsMapper;
 import ar.edu.itba.pod.hz.mr.query3.MaxNDepartmentsReducer;
+import ar.edu.itba.pod.hz.mr.query4.DepartmentByProvUnitMapperFactory;
+import ar.edu.itba.pod.hz.mr.query4.DepartmentFilterCounterReducerFactory;
+import ar.edu.itba.pod.hz.mr.query4.FilterTopeDepartmentMapper;
+import ar.edu.itba.pod.hz.mr.query4.IdentityReducerFactory;
+import ar.edu.itba.pod.hz.mr.query5.DepartmentPer100CounterReducerFactory;
+import ar.edu.itba.pod.hz.mr.query5.DepartmentUnitMapperFactory;
+import ar.edu.itba.pod.hz.mr.query5.Per100MapperFactory;
+import ar.edu.itba.pod.hz.mr.query5.TupleReducerFactory;
 
 public class Client {
 	private static final String MAP_NAME = "mapa";
@@ -96,7 +101,7 @@ public class Client {
 		int n = 3;
 
 		job = tracker.newJob(source);
-		ICompletableFuture<Map<String, Double>> futureQuery3 = job.mapper(new DepartmentMapperFactory())
+		ICompletableFuture<Map<String, Double>> futureQuery3 = job.mapper(new DepartmentAnalphabetMapperFactory())
 				.reducer(new AnalphabetPerDepartmentReducerFactory()).submit();
 
 		IMap<String, Double> partialMap = client.getMap("aux");
@@ -120,11 +125,12 @@ public class Client {
 		}
 
 		String nombreProv = "Buenos Aires";
-		int tope = 15;
+		int tope = 1000;
 
 		job = tracker.newJob(source);
-		ICompletableFuture<Map<String, Integer>> auxQuery4 = job.mapper(new DepartmentUnitMapperFactory(nombreProv))
-				.reducer(new DepartmentCounterReducerFactory(tope)).submit();
+		ICompletableFuture<Map<String, Integer>> auxQuery4 = job
+				.mapper(new DepartmentByProvUnitMapperFactory(nombreProv))
+				.reducer(new DepartmentFilterCounterReducerFactory(tope)).submit();
 
 		IMap<String, Integer> partialMapForQuery4 = client.getMap("auxForQuery4");
 		Map<String, Integer> rtaParcialQuery4 = auxQuery4.get();
@@ -145,6 +151,30 @@ public class Client {
 			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
 		}
 
+		job = tracker.newJob(source);
+		ICompletableFuture<Map<String, Integer>> auxQuery5 = job.mapper(new DepartmentUnitMapperFactory())
+				.reducer(new DepartmentPer100CounterReducerFactory()).submit();
+
+		IMap<String, Integer> partialMapForQuery5 = client.getMap("auxForQuery5");
+		Map<String, Integer> rtaParcialQuery5 = auxQuery5.get();
+
+		for (Entry<String, Integer> entry : rtaParcialQuery5.entrySet()) {
+			partialMapForQuery5.put(entry.getKey(), entry.getValue());
+		}
+
+		KeyValueSource<String, Integer> auxSourceForQuery5 = KeyValueSource.fromMap(partialMapForQuery5);
+		Job<String, Integer> auxJobForQuery5 = tracker.newJob(auxSourceForQuery5);
+
+		ICompletableFuture<Map<Integer, List<DepartmentDepartmentTuple>>> finalFutureQuery5 = auxJobForQuery5
+				.mapper(new Per100MapperFactory()).reducer(new TupleReducerFactory()).submit();
+
+		System.out.println("QUERY 5");
+		Map<Integer, List<DepartmentDepartmentTuple>> finalQuery5 = finalFutureQuery5.get();
+		for (Entry<Integer, List<DepartmentDepartmentTuple>> e : finalQuery5.entrySet()) {
+			System.out.println(String.format("%s", e.getKey()));
+			for (DepartmentDepartmentTuple each : e.getValue())
+				System.out.println(each);
+		}
 		System.exit(0);
 
 	}

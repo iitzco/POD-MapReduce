@@ -1,9 +1,9 @@
-package ar.edu.itba.pod.hz.model.query4;
+package ar.edu.itba.pod.hz.mr.query5;
 
 import com.hazelcast.mapreduce.Reducer;
 import com.hazelcast.mapreduce.ReducerFactory;
 
-public class IdentityReducerFactory implements ReducerFactory<String, Integer, Integer> {
+public class DepartmentPer100CounterReducerFactory implements ReducerFactory<String, Integer, Integer> {
 	private static final long serialVersionUID = 7760070699178320492L;
 
 	@Override
@@ -18,12 +18,12 @@ public class IdentityReducerFactory implements ReducerFactory<String, Integer, I
 
 			@Override
 			public void reduce(final Integer value) {
-				count = value;
+				count++;
 			}
 
 			@Override
 			public Integer finalizeReduce() {
-				return count;
+				return (int) (count / 100.0);
 			}
 		};
 	}

@@ -1,16 +1,10 @@
-package ar.edu.itba.pod.hz.model.query4;
+package ar.edu.itba.pod.hz.mr.query4;
 
 import com.hazelcast.mapreduce.Reducer;
 import com.hazelcast.mapreduce.ReducerFactory;
 
-public class DepartmentCounterReducerFactory implements ReducerFactory<String, Integer, Integer> {
+public class IdentityReducerFactory implements ReducerFactory<String, Integer, Integer> {
 	private static final long serialVersionUID = 7760070699178320492L;
-
-	private int tope;
-
-	public DepartmentCounterReducerFactory(int tope) {
-		this.tope = tope;
-	}
 
 	@Override
 	public Reducer<Integer, Integer> newReducer(final String department) {
@@ -24,13 +18,11 @@ public class DepartmentCounterReducerFactory implements ReducerFactory<String, I
 
 			@Override
 			public void reduce(final Integer value) {
-				count++;
+				count = value;
 			}
 
 			@Override
 			public Integer finalizeReduce() {
-				if (count >= tope)
-					return -1;
 				return count;
 			}
 		};
