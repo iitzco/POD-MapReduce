@@ -27,8 +27,7 @@ import ar.edu.itba.pod.hz.mr.query3.DepartmentAnalphabetMapperFactory;
 import ar.edu.itba.pod.hz.mr.query3.MaxNCollator;
 import ar.edu.itba.pod.hz.mr.query4.DepartmentByProvUnitMapperFactory;
 import ar.edu.itba.pod.hz.mr.query4.DepartmentFilterCounterReducerFactory;
-import ar.edu.itba.pod.hz.mr.query4.FilterTopeDepartmentMapper;
-import ar.edu.itba.pod.hz.mr.query4.IdentityReducerFactory;
+import ar.edu.itba.pod.hz.mr.query4.UnderTopeCollator;
 import ar.edu.itba.pod.hz.mr.query5.DepartmentPer100CounterReducerFactory;
 import ar.edu.itba.pod.hz.mr.query5.DepartmentUnitMapperFactory;
 import ar.edu.itba.pod.hz.mr.query5.Per100MapperFactory;
@@ -75,6 +74,8 @@ public class Client {
 		KeyValueSource<Integer, Data> source = KeyValueSource.fromMap(myMap);
 		Job<Integer, Data> job = tracker.newJob(source);
 
+		// ----------------------- QUERY 1 ----------------------------------
+
 		ICompletableFuture<Map<String, Integer>> futureQuery1 = job.mapper(new AgeCategoryMapperFactory())
 				.reducer(new AgeCategoryCounterReducerFactory()).submit();
 
@@ -84,6 +85,9 @@ public class Client {
 		for (Entry<String, Integer> e : rtaQuery1.entrySet()) {
 			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
 		}
+		// ---------------------------------------------------------------------
+
+		// ----------------------- QUERY 2 ----------------------------------
 
 		job = tracker.newJob(source);
 		ICompletableFuture<Map<Integer, Double>> futureQuery2 = job.mapper(new TypeOfHouseMapperFactory())
@@ -95,6 +99,9 @@ public class Client {
 		for (Entry<Integer, Double> e : rtaQuery2.entrySet()) {
 			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
 		}
+		// ---------------------------------------------------------------------
+
+		// ----------------------- QUERY 3 ----------------------------------
 
 		int n = 4;
 
@@ -108,33 +115,28 @@ public class Client {
 		for (Entry<String, Double> e : rtaQuery3.entrySet()) {
 			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
 		}
+		// ---------------------------------------------------------------------
+
+		// ----------------------- QUERY 4 ----------------------------------
 
 		String nombreProv = "Buenos Aires";
-		int tope = 1000;
+		int tope = 10;
 
 		job = tracker.newJob(source);
-		ICompletableFuture<Map<String, Integer>> auxQuery4 = job
+		ICompletableFuture<Map<String, Integer>> futureQuery4 = job
 				.mapper(new DepartmentByProvUnitMapperFactory(nombreProv))
-				.reducer(new DepartmentFilterCounterReducerFactory(tope)).submit();
+				.reducer(new DepartmentFilterCounterReducerFactory()).submit(new UnderTopeCollator(tope));
 
-		IMap<String, Integer> partialMapForQuery4 = client.getMap("auxForQuery4");
-		Map<String, Integer> rtaParcialQuery4 = auxQuery4.get();
-
-		for (Entry<String, Integer> entry : rtaParcialQuery4.entrySet()) {
-			partialMapForQuery4.put(entry.getKey(), entry.getValue());
-		}
-
-		KeyValueSource<String, Integer> auxSourceForQuery4 = KeyValueSource.fromMap(partialMapForQuery4);
-		Job<String, Integer> auxJobForQuery4 = tracker.newJob(auxSourceForQuery4);
-
-		ICompletableFuture<Map<String, Integer>> finalFutureQuery4 = auxJobForQuery4
-				.mapper(new FilterTopeDepartmentMapper()).reducer(new IdentityReducerFactory()).submit();
+		Map<String, Integer> rtaQuery4 = futureQuery4.get();
 
 		System.out.println("QUERY 4");
-		Map<String, Integer> finalQuery4 = finalFutureQuery4.get();
-		for (Entry<String, Integer> e : finalQuery4.entrySet()) {
+		for (Entry<String, Integer> e : rtaQuery4.entrySet()) {
 			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
 		}
+
+		// ---------------------------------------------------------------------
+
+		// ----------------------- QUERY 5 ----------------------------------
 
 		job = tracker.newJob(source);
 		ICompletableFuture<Map<String, Integer>> auxQuery5 = job.mapper(new DepartmentUnitMapperFactory())
@@ -160,6 +162,9 @@ public class Client {
 			for (DepartmentDepartmentTuple each : e.getValue())
 				System.out.println(each);
 		}
+
+		// ---------------------------------------------------------------------
+
 		System.exit(0);
 
 	}

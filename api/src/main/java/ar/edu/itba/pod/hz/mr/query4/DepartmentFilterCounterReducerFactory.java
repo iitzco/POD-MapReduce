@@ -6,12 +6,6 @@ import com.hazelcast.mapreduce.ReducerFactory;
 public class DepartmentFilterCounterReducerFactory implements ReducerFactory<String, Integer, Integer> {
 	private static final long serialVersionUID = 7760070699178320492L;
 
-	private int tope;
-
-	public DepartmentFilterCounterReducerFactory(int tope) {
-		this.tope = tope;
-	}
-
 	@Override
 	public Reducer<Integer, Integer> newReducer(final String department) {
 		return new Reducer<Integer, Integer>() {
@@ -29,8 +23,6 @@ public class DepartmentFilterCounterReducerFactory implements ReducerFactory<Str
 
 			@Override
 			public Integer finalizeReduce() {
-				if (count >= tope)
-					return -1;
 				return count;
 			}
 		};
