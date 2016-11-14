@@ -30,6 +30,7 @@ import ar.edu.itba.pod.hz.mr.query4.DepartmentFilterCounterReducerFactory;
 import ar.edu.itba.pod.hz.mr.query4.UnderTopeCollator;
 import ar.edu.itba.pod.hz.mr.query5.DepartmentPer100CounterReducerFactory;
 import ar.edu.itba.pod.hz.mr.query5.DepartmentUnitMapperFactory;
+import ar.edu.itba.pod.hz.mr.query5.EmptyListCollator;
 import ar.edu.itba.pod.hz.mr.query5.Per100MapperFactory;
 import ar.edu.itba.pod.hz.mr.query5.TupleReducerFactory;
 
@@ -153,7 +154,7 @@ public class Client {
 		Job<String, Integer> auxJobForQuery5 = tracker.newJob(auxSourceForQuery5);
 
 		ICompletableFuture<Map<Integer, List<DepartmentDepartmentTuple>>> finalFutureQuery5 = auxJobForQuery5
-				.mapper(new Per100MapperFactory()).reducer(new TupleReducerFactory()).submit();
+				.mapper(new Per100MapperFactory()).reducer(new TupleReducerFactory()).submit(new EmptyListCollator());
 
 		System.out.println("QUERY 5");
 		Map<Integer, List<DepartmentDepartmentTuple>> finalQuery5 = finalFutureQuery5.get();
