@@ -1,12 +1,7 @@
 package ar.edu.itba.pod.hz.mr.query3;
 
-import java.util.Map;
-import java.util.TreeMap;
-
 import com.hazelcast.mapreduce.Reducer;
 import com.hazelcast.mapreduce.ReducerFactory;
-
-import ar.edu.itba.pod.hz.model.Data;
 
 public class AnalphabetPerDepartmentReducerFactory implements ReducerFactory<String, Integer, Double> {
 
