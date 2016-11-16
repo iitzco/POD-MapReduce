@@ -1,9 +1,15 @@
 package ar.edu.itba.pod.hz.client;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
@@ -35,37 +41,68 @@ import ar.edu.itba.pod.hz.mr.query5.Per100MapperFactory;
 import ar.edu.itba.pod.hz.mr.query5.TupleReducerFactory;
 
 public class Client {
-	private static final String MAP_NAME = "mapa";
-	// private static Logger logger = LoggerFactory.getLogger(Client.class);
 
-	public static void main(String[] args) throws InterruptedException, ExecutionException {
+	private HazelcastInstance client;
 
-		String name = System.getProperty("name");
-		String pass = System.getProperty("pass");
-		if (pass == null) {
-			pass = "dev-pass";
-		}
+	private String fileNameIn;
 
-		// System.out.println(String.format("Connecting with cluster dev-name
-		// [%s]", name));
+	PrintWriter writer;
+
+	public Client(ClientConfig ccfg, String fileNameIn, String fileNameOut)
+			throws FileNotFoundException, UnsupportedEncodingException {
+		super();
+		this.client = HazelcastClient.newHazelcastClient(ccfg);
+		this.fileNameIn = fileNameIn;
+		this.writer = new PrintWriter(fileNameOut, "UTF-8");
+	}
+
+	private static final String MAP_NAME = "52539-53891-main";
+	
+	private static Logger logger = LoggerFactory.getLogger(Client.class);
+
+	public static void main(String[] args)
+			throws InterruptedException, ExecutionException, FileNotFoundException, UnsupportedEncodingException {
+
+		Parameters p = Parameters.loadParameters();
 
 		ClientConfig ccfg = new ClientConfig();
-		ccfg.getGroupConfig().setName(name).setPassword(pass);
+		ccfg.getGroupConfig().setName(p.getName()).setPassword(p.getPass());
 
-		// no hay descubrimiento automatico,
-		// pero si no decimos nada intentará usar LOCALHOST
-		String addresses = System.getProperty("addresses");
-		if (addresses != null) {
-			String[] arrayAddresses = addresses.split("[,;]");
-			ClientNetworkConfig net = new ClientNetworkConfig();
-			net.addAddress(arrayAddresses);
-			ccfg.setNetworkConfig(net);
+		ClientNetworkConfig net = new ClientNetworkConfig();
+		net.addAddress(p.getAddresses());
+		ccfg.setNetworkConfig(net);
+
+		Client queryClient = new Client(ccfg, p.getPathIn(), p.getPathOut());
+
+		switch (p.getQuery()) {
+		case 1:
+			queryClient.query1();
+			break;
+		case 2:
+			queryClient.query2();
+			break;
+		case 3:
+			queryClient.query3(p.getN());
+			break;
+		case 4:
+			queryClient.query4(p.getProv(), p.getTope());
+			break;
+		case 5:
+			queryClient.query5();
+			break;
 		}
-		HazelcastInstance client = HazelcastClient.newHazelcastClient(ccfg);
+		queryClient.writer.close();
 
+		System.exit(0);
+	}
+
+	public void query1()
+			throws InterruptedException, ExecutionException, FileNotFoundException, UnsupportedEncodingException {
 		IMap<Integer, Data> myMap = client.getMap(MAP_NAME);
 		try {
-			DataSetReader.readDataSet(myMap);
+			logger.info("Inicio de la lectura del archivo");
+			DataSetReader.readDataSet(myMap, fileNameIn);
+			logger.info("Fin de lectura del archivo");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -75,75 +112,132 @@ public class Client {
 		KeyValueSource<Integer, Data> source = KeyValueSource.fromMap(myMap);
 		Job<Integer, Data> job = tracker.newJob(source);
 
-		// ----------------------- QUERY 1 ----------------------------------
+		logger.info("Inicio del trabajo map/reduce");
 
 		ICompletableFuture<Map<String, Integer>> futureQuery1 = job.mapper(new AgeCategoryMapperFactory())
 				.reducer(new AgeCategoryCounterReducerFactory()).submit();
 
 		Map<String, Integer> rtaQuery1 = futureQuery1.get();
+		logger.info("Fin del trabajo map/reduce");
 
-		System.out.println("QUERY 1");
 		for (Entry<String, Integer> e : rtaQuery1.entrySet()) {
-			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
+			writer.println(String.format("%s => %s", e.getKey(), e.getValue()));
 		}
-		// ---------------------------------------------------------------------
 
-		// ----------------------- QUERY 2 ----------------------------------
+	}
+
+	public void query2() throws InterruptedException, ExecutionException {
+		IMap<Integer, Data> myMap = client.getMap(MAP_NAME);
+		try {
+			logger.info("Inicio de la lectura del archivo");
+			DataSetReader.readDataSet(myMap, fileNameIn);
+			logger.info("Fin de lectura del archivo");
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		JobTracker tracker = client.getJobTracker("default");
+
+		KeyValueSource<Integer, Data> source = KeyValueSource.fromMap(myMap);
+		Job<Integer, Data> job = tracker.newJob(source);
 
 		job = tracker.newJob(source);
+		logger.info("Inicio del trabajo map/reduce");
 		ICompletableFuture<Map<Integer, Double>> futureQuery2 = job.mapper(new TypeOfHouseMapperFactory())
 				.reducer(new AverageHabitantsPerHouseReducerFactory()).submit();
 
 		Map<Integer, Double> rtaQuery2 = futureQuery2.get();
+		logger.info("Fin del trabajo map/reduce");
 
-		System.out.println("QUERY 2");
 		for (Entry<Integer, Double> e : rtaQuery2.entrySet()) {
-			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
+			writer.println(String.format("%s => %s", e.getKey(), e.getValue()));
 		}
-		// ---------------------------------------------------------------------
+	}
 
-		// ----------------------- QUERY 3 ----------------------------------
+	public void query3(int n) throws InterruptedException, ExecutionException {
+		IMap<Integer, Data> myMap = client.getMap(MAP_NAME);
+		try {
+			logger.info("Inicio de la lectura del archivo");
+			DataSetReader.readDataSet(myMap, fileNameIn);
+			logger.info("Fin de lectura del archivo");
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 
-		int n = 4;
+		JobTracker tracker = client.getJobTracker("default");
+
+		KeyValueSource<Integer, Data> source = KeyValueSource.fromMap(myMap);
+		Job<Integer, Data> job = tracker.newJob(source);
 
 		job = tracker.newJob(source);
+
+		logger.info("Inicio del trabajo map/reduce");
 		ICompletableFuture<Map<String, Double>> futureQuery3 = job.mapper(new DepartmentAnalphabetMapperFactory())
 				.reducer(new AnalphabetPerDepartmentReducerFactory()).submit(new MaxNCollator(n));
 
 		Map<String, Double> rtaQuery3 = futureQuery3.get();
+		logger.info("Fin del trabajo map/reduce");
 
-		System.out.println("QUERY 3");
 		for (Entry<String, Double> e : rtaQuery3.entrySet()) {
-			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
+			writer.println(String.format("%s => %s", e.getKey(), e.getValue()));
 		}
-		// ---------------------------------------------------------------------
 
-		// ----------------------- QUERY 4 ----------------------------------
+	}
 
-		String nombreProv = "Buenos Aires";
-		int tope = 10;
+	public void query4(String nombreProv, int tope) throws InterruptedException, ExecutionException {
+		IMap<Integer, Data> myMap = client.getMap(MAP_NAME);
+		try {
+			logger.info("Inicio de la lectura del archivo");
+			DataSetReader.readDataSet(myMap, fileNameIn);
+			logger.info("Fin de lectura del archivo");
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		JobTracker tracker = client.getJobTracker("default");
+
+		KeyValueSource<Integer, Data> source = KeyValueSource.fromMap(myMap);
+		Job<Integer, Data> job = tracker.newJob(source);
 
 		job = tracker.newJob(source);
+
+		logger.info("Inicio del trabajo map/reduce");
 		ICompletableFuture<Map<String, Integer>> futureQuery4 = job
 				.mapper(new DepartmentByProvUnitMapperFactory(nombreProv))
 				.reducer(new DepartmentFilterCounterReducerFactory()).submit(new UnderTopeCollator(tope));
 
 		Map<String, Integer> rtaQuery4 = futureQuery4.get();
+		logger.info("Fin del trabajo map/reduce");
 
-		System.out.println("QUERY 4");
 		for (Entry<String, Integer> e : rtaQuery4.entrySet()) {
-			System.out.println(String.format("%s => %s", e.getKey(), e.getValue()));
+			writer.println(String.format("%s => %s", e.getKey(), e.getValue()));
 		}
 
-		// ---------------------------------------------------------------------
+	}
 
-		// ----------------------- QUERY 5 ----------------------------------
+	public void query5() throws InterruptedException, ExecutionException {
+		IMap<Integer, Data> myMap = client.getMap(MAP_NAME);
+		try {
+			logger.info("Inicio de la lectura del archivo");
+			DataSetReader.readDataSet(myMap, fileNameIn);
+			logger.info("Fin de lectura del archivo");
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		JobTracker tracker = client.getJobTracker("default");
+
+		KeyValueSource<Integer, Data> source = KeyValueSource.fromMap(myMap);
+		Job<Integer, Data> job = tracker.newJob(source);
 
 		job = tracker.newJob(source);
+
+		logger.info("Inicio del trabajo map/reduce");
+
 		ICompletableFuture<Map<String, Integer>> auxQuery5 = job.mapper(new DepartmentUnitMapperFactory())
 				.reducer(new DepartmentPer100CounterReducerFactory()).submit();
 
-		IMap<String, Integer> partialMapForQuery5 = client.getMap("auxForQuery5");
+		IMap<String, Integer> partialMapForQuery5 = client.getMap("52539-53891-aux");
 		Map<String, Integer> rtaParcialQuery5 = auxQuery5.get();
 
 		for (Entry<String, Integer> entry : rtaParcialQuery5.entrySet()) {
@@ -156,17 +250,14 @@ public class Client {
 		ICompletableFuture<Map<Integer, List<DepartmentDepartmentTuple>>> finalFutureQuery5 = auxJobForQuery5
 				.mapper(new Per100MapperFactory()).reducer(new TupleReducerFactory()).submit(new EmptyListCollator());
 
-		System.out.println("QUERY 5");
 		Map<Integer, List<DepartmentDepartmentTuple>> finalQuery5 = finalFutureQuery5.get();
+
+		logger.info("Fin del trabajo map/reduce");
 		for (Entry<Integer, List<DepartmentDepartmentTuple>> e : finalQuery5.entrySet()) {
-			System.out.println(String.format("%s", e.getKey()));
+			writer.println(String.format("%s", e.getKey()));
 			for (DepartmentDepartmentTuple each : e.getValue())
-				System.out.println(each);
+				writer.println(each);
 		}
-
-		// ---------------------------------------------------------------------
-
-		System.exit(0);
-
 	}
+
 }

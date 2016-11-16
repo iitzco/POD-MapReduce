@@ -1,6 +1,6 @@
 package ar.edu.itba.pod.hz.client.reader;
 
-import java.io.InputStream;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
@@ -17,9 +17,8 @@ import com.hazelcast.core.IMap;
 import ar.edu.itba.pod.hz.model.Data;
 
 public class DataSetReader {
-	// el directorio wc dentro en un directorio llamado "resources"
-	// al mismo nivel que la carpeta src, etc.
-	private static final String FILENAME = "files/dataset-1000.csv";
+
+	// private static final String FILENAME = "files/dataset-1000.csv";
 
 	private static CellProcessor[] getProcessors() {
 		return new CellProcessor[] { new ParseInt(new NotNull()), // tipovivienda
@@ -34,16 +33,13 @@ public class DataSetReader {
 		};
 	}
 
-	public static void readDataSet(final IMap<Integer, Data> theIMap) throws Exception {
+	public static void readDataSet(final IMap<Integer, Data> theIMap, String fileNameIn) throws Exception {
 		ICsvBeanReader beanReader = null;
 		try {
-			final InputStream is = DataSetReader.class.getClassLoader().getResourceAsStream(FILENAME);
+			final FileInputStream is = new FileInputStream(fileNameIn);
 			final Reader aReader = new InputStreamReader(is);
-			beanReader = new CsvBeanReader(aReader, CsvPreference.EXCEL_PREFERENCE); // separador
-																						// ,
+			beanReader = new CsvBeanReader(aReader, CsvPreference.EXCEL_PREFERENCE);
 
-			// the header elements are used to map the values to the bean (names
-			// must match)
 			final String[] header = beanReader.getHeader(true);
 			final CellProcessor[] processors = getProcessors();
 
