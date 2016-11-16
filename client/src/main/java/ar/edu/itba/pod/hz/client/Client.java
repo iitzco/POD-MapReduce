@@ -57,7 +57,7 @@ public class Client {
 	}
 
 	private static final String MAP_NAME = "52539-53891-main";
-	
+
 	private static Logger logger = LoggerFactory.getLogger(Client.class);
 
 	public static void main(String[] args)
@@ -121,7 +121,7 @@ public class Client {
 		logger.info("Fin del trabajo map/reduce");
 
 		for (Entry<String, Integer> e : rtaQuery1.entrySet()) {
-			writer.println(String.format("%s => %s", e.getKey(), e.getValue()));
+			writer.println(String.format("%s = %s", e.getKey(), e.getValue()));
 		}
 
 	}
@@ -150,7 +150,7 @@ public class Client {
 		logger.info("Fin del trabajo map/reduce");
 
 		for (Entry<Integer, Double> e : rtaQuery2.entrySet()) {
-			writer.println(String.format("%s => %s", e.getKey(), e.getValue()));
+			writer.println(String.format("%s = %.02f", e.getKey(), e.getValue()));
 		}
 	}
 
@@ -179,9 +179,8 @@ public class Client {
 		logger.info("Fin del trabajo map/reduce");
 
 		for (Entry<String, Double> e : rtaQuery3.entrySet()) {
-			writer.println(String.format("%s => %s", e.getKey(), e.getValue()));
+			writer.println(String.format("%s = %.02f", e.getKey(), e.getValue()));
 		}
-
 	}
 
 	public void query4(String nombreProv, int tope) throws InterruptedException, ExecutionException {
