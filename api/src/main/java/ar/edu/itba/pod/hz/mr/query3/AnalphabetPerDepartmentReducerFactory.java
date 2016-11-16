@@ -26,7 +26,7 @@ public class AnalphabetPerDepartmentReducerFactory implements ReducerFactory<Str
 
 			@Override
 			public void reduce(final Integer value) {
-				if (value == 0) {
+				if (value == 2) {
 					analphabetsInDepartment++;
 				}
 				totalHabitantsOfDepartment++;

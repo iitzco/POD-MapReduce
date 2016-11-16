@@ -15,9 +15,12 @@ public class Parameters {
 		try {
 			Parameters ret = new Parameters();
 			ret.name = System.getProperty("name");
+			if (ret.name == null) {
+				ret.name = "52539-53891";
+			}
 			ret.pass = System.getProperty("pass");
 			if (ret.pass == null) {
-				ret.pass = "dev-pass";
+				ret.pass = "pass";
 			}
 
 			String addrs = System.getProperty("addresses");
@@ -28,7 +31,6 @@ public class Parameters {
 
 			ret.pathIn = System.getProperty("inPath");
 			ret.pathOut = System.getProperty("outPath");
-
 
 			if (ret.query == 3) {
 				ret.n = Integer.valueOf(System.getProperty("n"));
