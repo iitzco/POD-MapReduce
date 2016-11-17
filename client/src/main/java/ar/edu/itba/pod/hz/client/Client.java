@@ -288,7 +288,7 @@ public class Client {
 
 		logger.info("Fin del trabajo map/reduce");
 		for (Entry<Integer, List<DepartmentDepartmentTuple>> e : finalQuery5.entrySet()) {
-			writer.println(String.format("%s", e.getKey()));
+			writer.println(e.getKey() * 100);
 			for (DepartmentDepartmentTuple each : e.getValue())
 				writer.println(each);
 		}
