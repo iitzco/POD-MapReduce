@@ -1,3 +1,4 @@
+./server/hazelcast.xml
 
 # Created by https://www.gitignore.io/api/vim,eclipse,intellij,maven
 
@@ -134,3 +135,4 @@ buildNumber.properties
 
 # Exclude maven wrapper
 !/.mvn/wrapper/maven-wrapper.jar
+
