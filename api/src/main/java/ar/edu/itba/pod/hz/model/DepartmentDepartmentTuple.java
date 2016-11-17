@@ -22,7 +22,7 @@ public class DepartmentDepartmentTuple implements DataSerializable {
 
 	@Override
 	public String toString() {
-		return nombreDepto1 + " +  " + nombreDepto2;
+		return nombreDepto1 + " + " + nombreDepto2;
 	}
 
 	public String getNombreDepto1() {

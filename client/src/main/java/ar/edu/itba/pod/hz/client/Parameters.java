@@ -14,20 +14,18 @@ public class Parameters {
 	public static Parameters loadParameters() {
 		try {
 			Parameters ret = new Parameters();
-			ret.name = System.getProperty("name");
-			if (ret.name == null) {
-				ret.name = "52539-53891";
-			}
-			ret.pass = System.getProperty("pass");
-			if (ret.pass == null) {
-				ret.pass = "pass";
-			}
+
+			ret.name = System.getProperty("name", "52539-53891");
+			ret.pass = System.getProperty("pass", "pass");
 
 			String addrs = System.getProperty("addresses");
 			ret.addresses = addrs.split("[,;]");
 
 			String queryNumber = System.getProperty("query");
 			ret.query = Integer.valueOf(queryNumber);
+
+			if (ret.query < 1 || ret.query > 5)
+				throw new Exception();
 
 			ret.pathIn = System.getProperty("inPath");
 			ret.pathOut = System.getProperty("outPath");
@@ -40,7 +38,7 @@ public class Parameters {
 			}
 			return ret;
 		} catch (Exception e) {
-			System.out.println("Error in paameters");
+			System.out.println("Error in parameters.");
 			System.exit(1);
 		}
 		return null;

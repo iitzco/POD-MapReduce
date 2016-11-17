@@ -3,6 +3,9 @@ package ar.edu.itba.pod.hz.client;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -60,40 +63,45 @@ public class Client {
 
 	private static Logger logger = LoggerFactory.getLogger(Client.class);
 
-	public static void main(String[] args)
-			throws InterruptedException, ExecutionException, FileNotFoundException, UnsupportedEncodingException {
+	public static void main(String[] args) {
 
-		Parameters p = Parameters.loadParameters();
+		try {
+			Parameters p = Parameters.loadParameters();
 
-		ClientConfig ccfg = new ClientConfig();
-		ccfg.getGroupConfig().setName(p.getName()).setPassword(p.getPass());
+			ClientConfig ccfg = new ClientConfig();
+			ccfg.getGroupConfig().setName(p.getName()).setPassword(p.getPass());
 
-		ClientNetworkConfig net = new ClientNetworkConfig();
-		net.addAddress(p.getAddresses());
-		ccfg.setNetworkConfig(net);
+			ClientNetworkConfig net = new ClientNetworkConfig();
+			net.addAddress(p.getAddresses());
+			ccfg.setNetworkConfig(net);
 
-		Client queryClient = new Client(ccfg, p.getPathIn(), p.getPathOut());
+			Client queryClient = new Client(ccfg, p.getPathIn(), p.getPathOut());
 
-		switch (p.getQuery()) {
-		case 1:
-			queryClient.query1();
-			break;
-		case 2:
-			queryClient.query2();
-			break;
-		case 3:
-			queryClient.query3(p.getN());
-			break;
-		case 4:
-			queryClient.query4(p.getProv(), p.getTope());
-			break;
-		case 5:
-			queryClient.query5();
-			break;
+			switch (p.getQuery()) {
+			case 1:
+				queryClient.query1();
+				break;
+			case 2:
+				queryClient.query2();
+				break;
+			case 3:
+				queryClient.query3(p.getN());
+				break;
+			case 4:
+				queryClient.query4(p.getProv(), p.getTope());
+				break;
+			case 5:
+				queryClient.query5();
+				break;
+			}
+			queryClient.writer.close();
+			System.exit(0);
+
+		} catch (Exception e) {
+			System.out.println("An unexpected error occured.");
+			e.printStackTrace();
+			System.exit(1);
 		}
-		queryClient.writer.close();
-
-		System.exit(0);
 	}
 
 	public void query1()
@@ -120,9 +128,9 @@ public class Client {
 		Map<String, Integer> rtaQuery1 = futureQuery1.get();
 		logger.info("Fin del trabajo map/reduce");
 
-		for (Entry<String, Integer> e : rtaQuery1.entrySet()) {
-			writer.println(String.format("%s = %s", e.getKey(), e.getValue()));
-		}
+		writer.println(String.format("0-14 = %s", rtaQuery1.getOrDefault("0-14", 0)));
+		writer.println(String.format("15-64 = %s", rtaQuery1.getOrDefault("15-64", 0)));
+		writer.println(String.format("65-? = %s", rtaQuery1.getOrDefault("65-?", 0)));
 
 	}
 
@@ -149,7 +157,16 @@ public class Client {
 		Map<Integer, Double> rtaQuery2 = futureQuery2.get();
 		logger.info("Fin del trabajo map/reduce");
 
+		List<Entry<Integer, Double>> ret = new ArrayList<>();
+
 		for (Entry<Integer, Double> e : rtaQuery2.entrySet()) {
+			int i = 0;
+			while (i < ret.size() && ret.get(i).getKey() < e.getKey())
+				i++;
+			ret.add(i, e);
+		}
+
+		for (Entry<Integer, Double> e : ret) {
 			writer.println(String.format("%s = %.02f", e.getKey(), e.getValue()));
 		}
 	}
@@ -178,7 +195,16 @@ public class Client {
 		Map<String, Double> rtaQuery3 = futureQuery3.get();
 		logger.info("Fin del trabajo map/reduce");
 
-		for (Entry<String, Double> e : rtaQuery3.entrySet()) {
+		List<Entry<String, Double>> ret = new ArrayList<>();
+		ret.addAll(rtaQuery3.entrySet());
+		Collections.sort(ret, new Comparator<Entry<String, Double>>() {
+			@Override
+			public int compare(Entry<String, Double> o1, Entry<String, Double> o2) {
+				return Double.compare(o2.getValue(), o1.getValue());
+			}
+		});
+
+		for (Entry<String, Double> e : ret) {
 			writer.println(String.format("%s = %.02f", e.getKey(), e.getValue()));
 		}
 	}
@@ -208,8 +234,17 @@ public class Client {
 		Map<String, Integer> rtaQuery4 = futureQuery4.get();
 		logger.info("Fin del trabajo map/reduce");
 
-		for (Entry<String, Integer> e : rtaQuery4.entrySet()) {
-			writer.println(String.format("%s => %s", e.getKey(), e.getValue()));
+		List<Entry<String, Integer>> ret = new ArrayList<>();
+		ret.addAll(rtaQuery4.entrySet());
+		Collections.sort(ret, new Comparator<Entry<String, Integer>>() {
+			@Override
+			public int compare(Entry<String, Integer> o1, Entry<String, Integer> o2) {
+				return Double.compare(o2.getValue(), o1.getValue());
+			}
+		});
+
+		for (Entry<String, Integer> e : ret) {
+			writer.println(String.format("%s = %s", e.getKey(), e.getValue()));
 		}
 
 	}

@@ -16,7 +16,7 @@ public class AgeCategoryMapperFactory implements Mapper<Integer, Data, String, I
 		if (age <= 14)
 			category = "0-14";
 		else if (age <= 64)
-			category = "14-64";
+			category = "15-64";
 		else
 			category = "65-?";
 
