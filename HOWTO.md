@@ -9,26 +9,27 @@ $ mvn clean install eclipse:eclipse
 
 #### Run From terminal
 
+First, run *./make.sh* to generate scripts
+
 ##### Node
 
-* Run node
-  * go to server/target/ 
-  * Run *tar -xf ...-bin...tar.gz*
-  * cd inside unpacked folder
-  * *chmod +x run-node.sh*
-  * run *./run-node*
+* cd to server/target/tpe-server-1.0-SNAPSHOT/
+* run *./run-node*
+
+**NOTE**: make sure to activate interfaces (false->true) and specify network in hazelcast.xml to activate multiple nodes in different computers. All computers need to have same hazelcast.xml
+
 
 ##### Client
 
-Same proccess but with client
+* cd to client/target/tpe-client-1.0-SNAPSHOT/
+* run *./run-client -Daddresses=xx.xx.xx.xx;yy.yy.yy.yy -Dquery=1 -DinPath=censo.csv -DoutPath=output.txt [queryParams]*
 
 #### Run From Eclipse
 
 * Open Eclipse
   * Import as existing project
 
-* Open run-configuration for client and set VM arguments:
-  *-Dname=mt  -Dpass=dev-pass  -Daddresses=127.0.0.1*
+* Open run-configuration for client and set VM arguments
 
 * Move hazelcast from server/target/tpe-server-1.0-SNAPSHOT/ to server/
 

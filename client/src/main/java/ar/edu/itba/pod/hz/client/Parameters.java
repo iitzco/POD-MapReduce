@@ -18,7 +18,7 @@ public class Parameters {
 			ret.name = System.getProperty("name", "52539-53891");
 			ret.pass = System.getProperty("pass", "pass");
 
-			String addrs = System.getProperty("addresses");
+			String addrs = System.getProperty("addresses", "127.0.0.1");
 			ret.addresses = addrs.split("[,;]");
 
 			String queryNumber = System.getProperty("query");
