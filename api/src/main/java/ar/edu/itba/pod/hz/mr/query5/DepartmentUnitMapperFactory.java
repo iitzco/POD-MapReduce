@@ -11,6 +11,7 @@ public class DepartmentUnitMapperFactory implements Mapper<Integer, Data, String
 
 	@Override
 	public void map(final Integer keyinput, final Data valueinput, final Context<String, Integer> context) {
-		context.emit(valueinput.getNombredepto(), 1);
+		String deptoAndProv = valueinput.getNombredepto() + " (" + valueinput.getNombreprov() + ")";
+		context.emit(deptoAndProv, 1);
 	}
 }

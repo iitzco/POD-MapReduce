@@ -23,7 +23,7 @@ public class DepartmentPer100CounterReducerFactory implements ReducerFactory<Str
 
 			@Override
 			public Integer finalizeReduce() {
-				return (int) (count / 100.0);
+				return count / 100;
 			}
 		};
 	}
