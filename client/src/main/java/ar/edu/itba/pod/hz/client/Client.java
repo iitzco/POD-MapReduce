@@ -94,6 +94,7 @@ public class Client {
 			}
 			logger.info("Fin de lectura del archivo");
 
+			logger.info("Inicio del trabajo map/reduce");
 			switch (p.getQuery()) {
 			case 1:
 				queryClient.query1(myMap);
@@ -111,6 +112,7 @@ public class Client {
 				queryClient.query5(myMap);
 				break;
 			}
+			logger.info("Fin del trabajo map/reduce");
 			queryClient.writer.close();
 			System.exit(0);
 
@@ -129,13 +131,10 @@ public class Client {
 		KeyValueSource<Integer, Data> source = KeyValueSource.fromMap(myMap);
 		Job<Integer, Data> job = tracker.newJob(source);
 
-		logger.info("Inicio del trabajo map/reduce");
-
 		ICompletableFuture<Map<String, Integer>> futureQuery1 = job.mapper(new AgeCategoryMapperFactory())
 				.reducer(new AgeCategoryCounterReducerFactory()).submit();
 
 		Map<String, Integer> rtaQuery1 = futureQuery1.get();
-		logger.info("Fin del trabajo map/reduce");
 
 		writer.println(String.format("0-14 = %s", rtaQuery1.getOrDefault("0-14", 0)));
 		writer.println(String.format("15-64 = %s", rtaQuery1.getOrDefault("15-64", 0)));
@@ -151,12 +150,10 @@ public class Client {
 		Job<Integer, Data> job = tracker.newJob(source);
 
 		job = tracker.newJob(source);
-		logger.info("Inicio del trabajo map/reduce");
 		ICompletableFuture<Map<Integer, Double>> futureQuery2 = job.mapper(new TypeOfHouseMapperFactory())
 				.reducer(new AverageHabitantsPerHouseReducerFactory()).submit();
 
 		Map<Integer, Double> rtaQuery2 = futureQuery2.get();
-		logger.info("Fin del trabajo map/reduce");
 
 		List<Entry<Integer, Double>> ret = new ArrayList<>();
 
@@ -181,12 +178,10 @@ public class Client {
 
 		job = tracker.newJob(source);
 
-		logger.info("Inicio del trabajo map/reduce");
 		ICompletableFuture<Map<String, Double>> futureQuery3 = job.mapper(new DepartmentAnalphabetMapperFactory())
 				.reducer(new AnalphabetPerDepartmentReducerFactory()).submit(new MaxNCollator(n));
 
 		Map<String, Double> rtaQuery3 = futureQuery3.get();
-		logger.info("Fin del trabajo map/reduce");
 
 		List<Entry<String, Double>> ret = new ArrayList<>();
 		ret.addAll(rtaQuery3.entrySet());
@@ -212,13 +207,11 @@ public class Client {
 
 		job = tracker.newJob(source);
 
-		logger.info("Inicio del trabajo map/reduce");
 		ICompletableFuture<Map<String, Integer>> futureQuery4 = job
 				.mapper(new DepartmentByProvUnitMapperFactory(nombreProv))
 				.reducer(new DepartmentFilterCounterReducerFactory()).submit(new UnderTopeCollator(tope));
 
 		Map<String, Integer> rtaQuery4 = futureQuery4.get();
-		logger.info("Fin del trabajo map/reduce");
 
 		List<Entry<String, Integer>> ret = new ArrayList<>();
 		ret.addAll(rtaQuery4.entrySet());
@@ -244,8 +237,6 @@ public class Client {
 
 		job = tracker.newJob(source);
 
-		logger.info("Inicio del trabajo map/reduce");
-
 		ICompletableFuture<Map<String, Integer>> auxQuery5 = job.mapper(new DepartmentUnitMapperFactory())
 				.reducer(new DepartmentPer100CounterReducerFactory()).submit();
 
@@ -264,7 +255,6 @@ public class Client {
 
 		Map<Integer, List<DepartmentDepartmentTuple>> finalQuery5 = finalFutureQuery5.get();
 
-		logger.info("Fin del trabajo map/reduce");
 		List<Entry<Integer, List<DepartmentDepartmentTuple>>> ret = new ArrayList<>();
 		ret.addAll(finalQuery5.entrySet());
 		Collections.sort(ret, new Comparator<Entry<Integer, List<DepartmentDepartmentTuple>>>() {
