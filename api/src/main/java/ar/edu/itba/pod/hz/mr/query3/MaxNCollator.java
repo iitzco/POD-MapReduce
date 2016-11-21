@@ -8,7 +8,9 @@ import java.util.Map.Entry;
 
 import com.hazelcast.mapreduce.Collator;
 
-public class MaxNCollator implements Collator<Entry<String, Double>, Map<String, Double>> {
+import ar.edu.itba.pod.hz.model.ProvinceDepartmentTuple;
+
+public class MaxNCollator implements Collator<Entry<ProvinceDepartmentTuple, Double>, Map<String, Double>> {
 
 	private int N;
 
@@ -17,10 +19,10 @@ public class MaxNCollator implements Collator<Entry<String, Double>, Map<String,
 	}
 
 	@Override
-	public Map<String, Double> collate(Iterable<Entry<String, Double>> in) {
-		List<Entry<String, Double>> orderedList = new ArrayList<>();
+	public Map<String, Double> collate(Iterable<Entry<ProvinceDepartmentTuple, Double>> in) {
+		List<Entry<ProvinceDepartmentTuple, Double>> orderedList = new ArrayList<>();
 
-		for (Entry<String, Double> entry : in) {
+		for (Entry<ProvinceDepartmentTuple, Double> entry : in) {
 			int index = 0;
 			while (index < (orderedList.size() - 1) && orderedList.get(index).getValue() > entry.getValue())
 				index++;
@@ -33,8 +35,8 @@ public class MaxNCollator implements Collator<Entry<String, Double>, Map<String,
 
 		Map<String, Double> ret = new HashMap<>();
 		for (int i = 0; i < orderedList.size() && i < N; i++) {
-			Entry<String, Double> en = orderedList.get(i);
-			ret.put(en.getKey(), en.getValue());
+			Entry<ProvinceDepartmentTuple, Double> en = orderedList.get(i);
+			ret.put(en.getKey().getNombreDepto(), en.getValue());
 		}
 		return ret;
 	}

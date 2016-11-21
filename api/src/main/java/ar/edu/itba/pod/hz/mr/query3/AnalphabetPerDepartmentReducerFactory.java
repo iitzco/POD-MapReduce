@@ -3,7 +3,9 @@ package ar.edu.itba.pod.hz.mr.query3;
 import com.hazelcast.mapreduce.Reducer;
 import com.hazelcast.mapreduce.ReducerFactory;
 
-public class AnalphabetPerDepartmentReducerFactory implements ReducerFactory<String, Integer, Double> {
+import ar.edu.itba.pod.hz.model.ProvinceDepartmentTuple;
+
+public class AnalphabetPerDepartmentReducerFactory implements ReducerFactory<ProvinceDepartmentTuple, Integer, Double> {
 
 	/**
 	 * 
@@ -11,7 +13,7 @@ public class AnalphabetPerDepartmentReducerFactory implements ReducerFactory<Str
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	public Reducer<Integer, Double> newReducer(final String department) {
+	public Reducer<Integer, Double> newReducer(final ProvinceDepartmentTuple value) {
 		return new Reducer<Integer, Double>() {
 			private int totalHabitantsOfDepartment;
 			private int analphabetsInDepartment;
@@ -21,7 +23,6 @@ public class AnalphabetPerDepartmentReducerFactory implements ReducerFactory<Str
 			{
 				totalHabitantsOfDepartment = 0;
 				analphabetsInDepartment = 0;
-				// indexPerDepartment = new TreeMap<String, Double>();
 			}
 
 			@Override
