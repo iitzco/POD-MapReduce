@@ -287,7 +287,17 @@ public class Client {
 		Map<Integer, List<DepartmentDepartmentTuple>> finalQuery5 = finalFutureQuery5.get();
 
 		logger.info("Fin del trabajo map/reduce");
-		for (Entry<Integer, List<DepartmentDepartmentTuple>> e : finalQuery5.entrySet()) {
+		List<Entry<Integer, List<DepartmentDepartmentTuple>>> ret = new ArrayList<>();
+		ret.addAll(finalQuery5.entrySet());
+		Collections.sort(ret, new Comparator<Entry<Integer, List<DepartmentDepartmentTuple>>>() {
+			@Override
+			public int compare(Entry<Integer, List<DepartmentDepartmentTuple>> o1,
+					Entry<Integer, List<DepartmentDepartmentTuple>> o2) {
+				return o1.getKey() - o2.getKey();
+			}
+		});
+
+		for (Entry<Integer, List<DepartmentDepartmentTuple>> e : ret) {
 			writer.println(e.getKey() * 100);
 			for (DepartmentDepartmentTuple each : e.getValue())
 				writer.println(each);

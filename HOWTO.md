@@ -38,3 +38,5 @@ First, run *./make.sh* to generate scripts
 * Run node main
 
 * Run client
+
+**NOTE**: if after running *mvn clean install* or *./make.sh*, if want to work again from Eclipse, go to Project->Clean.
