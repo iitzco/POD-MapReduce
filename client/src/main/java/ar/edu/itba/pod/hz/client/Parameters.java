@@ -10,6 +10,7 @@ public class Parameters {
 	private int n;
 	private String prov;
 	private int tope;
+	private boolean loadMap;
 
 	public static Parameters loadParameters() {
 		try {
@@ -30,6 +31,8 @@ public class Parameters {
 			ret.pathIn = System.getProperty("inPath");
 			ret.pathOut = System.getProperty("outPath");
 
+			ret.loadMap = Boolean.valueOf(System.getProperty("loadMap", "true").toLowerCase());
+
 			if (ret.query == 3) {
 				ret.n = Integer.valueOf(System.getProperty("n"));
 			} else if (ret.query == 4) {
@@ -49,72 +52,40 @@ public class Parameters {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	public String getPass() {
 		return pass;
-	}
-
-	public void setPass(String pass) {
-		this.pass = pass;
 	}
 
 	public String[] getAddresses() {
 		return addresses;
 	}
 
-	public void setAddresses(String[] addresses) {
-		this.addresses = addresses;
-	}
-
 	public int getQuery() {
 		return query;
-	}
-
-	public void setQuery(int query) {
-		this.query = query;
 	}
 
 	public String getPathIn() {
 		return pathIn;
 	}
 
-	public void setPathIn(String pathIn) {
-		this.pathIn = pathIn;
-	}
-
 	public String getPathOut() {
 		return pathOut;
-	}
-
-	public void setPathOut(String pathOut) {
-		this.pathOut = pathOut;
 	}
 
 	public int getN() {
 		return n;
 	}
 
-	public void setN(int n) {
-		this.n = n;
-	}
-
 	public String getProv() {
 		return prov;
-	}
-
-	public void setProv(String prov) {
-		this.prov = prov;
 	}
 
 	public int getTope() {
 		return tope;
 	}
 
-	public void setTope(int tope) {
-		this.tope = tope;
+	public boolean isLoadMap() {
+		return loadMap;
 	}
 
 }

@@ -49,14 +49,17 @@ public class Client {
 
 	private String fileNameIn;
 
-	PrintWriter writer;
+	private PrintWriter writer;
 
-	public Client(ClientConfig ccfg, String fileNameIn, String fileNameOut)
+	private boolean loadMap;
+
+	public Client(ClientConfig ccfg, String fileNameIn, String fileNameOut, boolean loadMap)
 			throws FileNotFoundException, UnsupportedEncodingException {
 		super();
 		this.client = HazelcastClient.newHazelcastClient(ccfg);
 		this.fileNameIn = fileNameIn;
 		this.writer = new PrintWriter(fileNameOut, "UTF-8");
+		this.loadMap = loadMap;
 	}
 
 	private static final String MAP_NAME = "52539-53891-main";
@@ -75,23 +78,37 @@ public class Client {
 			net.addAddress(p.getAddresses());
 			ccfg.setNetworkConfig(net);
 
-			Client queryClient = new Client(ccfg, p.getPathIn(), p.getPathOut());
+			Client queryClient = new Client(ccfg, p.getPathIn(), p.getPathOut(), p.isLoadMap());
+
+			IMap<Integer, Data> myMap = queryClient.client.getMap(MAP_NAME);
+			if (queryClient.loadMap)
+				myMap.clear();
+
+			logger.info("Inicio de la lectura del archivo");
+			if (queryClient.loadMap) {
+				try {
+					DataSetReader.readDataSet(myMap, queryClient.fileNameIn);
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+			logger.info("Fin de lectura del archivo");
 
 			switch (p.getQuery()) {
 			case 1:
-				queryClient.query1();
+				queryClient.query1(myMap);
 				break;
 			case 2:
-				queryClient.query2();
+				queryClient.query2(myMap);
 				break;
 			case 3:
-				queryClient.query3(p.getN());
+				queryClient.query3(myMap, p.getN());
 				break;
 			case 4:
-				queryClient.query4(p.getProv(), p.getTope());
+				queryClient.query4(myMap, p.getProv(), p.getTope());
 				break;
 			case 5:
-				queryClient.query5();
+				queryClient.query5(myMap);
 				break;
 			}
 			queryClient.writer.close();
@@ -104,16 +121,8 @@ public class Client {
 		}
 	}
 
-	public void query1()
+	public void query1(IMap<Integer, Data> myMap)
 			throws InterruptedException, ExecutionException, FileNotFoundException, UnsupportedEncodingException {
-		IMap<Integer, Data> myMap = client.getMap(MAP_NAME);
-		try {
-			logger.info("Inicio de la lectura del archivo");
-			DataSetReader.readDataSet(myMap, fileNameIn);
-			logger.info("Fin de lectura del archivo");
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
 
 		JobTracker tracker = client.getJobTracker("default");
 
@@ -134,15 +143,7 @@ public class Client {
 
 	}
 
-	public void query2() throws InterruptedException, ExecutionException {
-		IMap<Integer, Data> myMap = client.getMap(MAP_NAME);
-		try {
-			logger.info("Inicio de la lectura del archivo");
-			DataSetReader.readDataSet(myMap, fileNameIn);
-			logger.info("Fin de lectura del archivo");
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	public void query2(IMap<Integer, Data> myMap) throws InterruptedException, ExecutionException {
 
 		JobTracker tracker = client.getJobTracker("default");
 
@@ -171,15 +172,7 @@ public class Client {
 		}
 	}
 
-	public void query3(int n) throws InterruptedException, ExecutionException {
-		IMap<Integer, Data> myMap = client.getMap(MAP_NAME);
-		try {
-			logger.info("Inicio de la lectura del archivo");
-			DataSetReader.readDataSet(myMap, fileNameIn);
-			logger.info("Fin de lectura del archivo");
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	public void query3(IMap<Integer, Data> myMap, int n) throws InterruptedException, ExecutionException {
 
 		JobTracker tracker = client.getJobTracker("default");
 
@@ -209,15 +202,8 @@ public class Client {
 		}
 	}
 
-	public void query4(String nombreProv, int tope) throws InterruptedException, ExecutionException {
-		IMap<Integer, Data> myMap = client.getMap(MAP_NAME);
-		try {
-			logger.info("Inicio de la lectura del archivo");
-			DataSetReader.readDataSet(myMap, fileNameIn);
-			logger.info("Fin de lectura del archivo");
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	public void query4(IMap<Integer, Data> myMap, String nombreProv, int tope)
+			throws InterruptedException, ExecutionException {
 
 		JobTracker tracker = client.getJobTracker("default");
 
@@ -249,15 +235,7 @@ public class Client {
 
 	}
 
-	public void query5() throws InterruptedException, ExecutionException {
-		IMap<Integer, Data> myMap = client.getMap(MAP_NAME);
-		try {
-			logger.info("Inicio de la lectura del archivo");
-			DataSetReader.readDataSet(myMap, fileNameIn);
-			logger.info("Fin de lectura del archivo");
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	public void query5(IMap<Integer, Data> myMap) throws InterruptedException, ExecutionException {
 
 		JobTracker tracker = client.getJobTracker("default");
 

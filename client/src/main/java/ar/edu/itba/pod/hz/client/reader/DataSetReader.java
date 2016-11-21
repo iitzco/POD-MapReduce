@@ -18,8 +18,6 @@ import ar.edu.itba.pod.hz.model.Data;
 
 public class DataSetReader {
 
-	// private static final String FILENAME = "files/dataset-1000.csv";
-
 	private static CellProcessor[] getProcessors() {
 		return new CellProcessor[] { new ParseInt(new NotNull()), // tipovivienda
 				new ParseInt(new NotNull()), // calidadservicios
