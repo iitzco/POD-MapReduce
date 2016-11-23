@@ -5,17 +5,13 @@ import com.hazelcast.mapreduce.Mapper;
 
 import ar.edu.itba.pod.hz.model.Data;
 
-// Parametrizar con los tipos de keyInput, ,valueInput, keyoutput, valueOutput
-public class TypeOfHouseMapperFactory implements Mapper<Integer, Data, Integer, Data> {
+public class TypeOfHouseMapperFactory implements Mapper<Integer, Data, Integer, Integer> {
 	private static final long serialVersionUID = -3713325164465665033L;
 
 	@Override
-	public void map(final Integer keyinput, final Data valueinput, final Context<Integer, Data> context) {
-//		System.out.println(String.format("Llega KeyInput: %s con ValueInput: %s", keyinput, valueinput));
+	public void map(final Integer keyinput, final Data valueinput, final Context<Integer, Integer> context) {
 
 		int tipoVivienda = valueinput.getTipovivienda();
-		context.emit(tipoVivienda, valueinput);
-
-//		System.out.println(String.format("Se emite (%s, %s)", tipoVivienda, valueinput));
+		context.emit(tipoVivienda, valueinput.getHogarid());
 	}
 }

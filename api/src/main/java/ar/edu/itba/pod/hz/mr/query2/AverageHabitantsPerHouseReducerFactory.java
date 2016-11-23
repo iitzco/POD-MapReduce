@@ -6,14 +6,12 @@ import java.util.Set;
 import com.hazelcast.mapreduce.Reducer;
 import com.hazelcast.mapreduce.ReducerFactory;
 
-import ar.edu.itba.pod.hz.model.Data;
-
-public class AverageHabitantsPerHouseReducerFactory implements ReducerFactory<Integer, Data, Double> {
+public class AverageHabitantsPerHouseReducerFactory implements ReducerFactory<Integer, Integer, Double> {
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	public Reducer<Data, Double> newReducer(final Integer typeOfHouse) {
-		return new Reducer<Data, Double>() {
+	public Reducer<Integer, Double> newReducer(final Integer typeOfHouse) {
+		return new Reducer<Integer, Double>() {
 			private Set<Integer> hogarids;
 			private int count;
 
@@ -25,14 +23,14 @@ public class AverageHabitantsPerHouseReducerFactory implements ReducerFactory<In
 			}
 
 			@Override
-			public void reduce(final Data value) {
-				hogarids.add(value.getHogarid());
+			public void reduce(final Integer value) {
+				hogarids.add(value);
 				count++;
 			}
 
 			@Override
 			public Double finalizeReduce() {
-				return ((double)count/hogarids.size());
+				return ((double) count / hogarids.size());
 			}
 		};
 	}
